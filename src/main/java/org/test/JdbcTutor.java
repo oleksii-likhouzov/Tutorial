@@ -7,8 +7,11 @@ import java.util.List;
 public class JdbcTutor extends Tutor {
     Connection conn;
 
+
     public static void main(String[] a) {
         JdbcTutor t = null;
+
+
         try {
             t = new JdbcTutor();
 
@@ -25,7 +28,7 @@ public class JdbcTutor extends Tutor {
 
 
             t.addStudents(new ArrayList<Student>(){{
-                add(new Student(10,"Gottor","gottor@fg.ua"));
+                add(new Student(1,"Gottor","gottor@fg.ua"));
                 add(new Student(20,"Jecson","jecson@fg.ua"));
             }}
             );
@@ -49,7 +52,7 @@ public class JdbcTutor extends Tutor {
     public Connection openConnection() {
         try {
             Class.forName("org.h2.Driver"); // this is driver for H2
-            conn = DriverManager.getConnection("jdbc:h2:~/DEMO",
+            conn = DriverManager.getConnection("jdbc:h2:~/DEMO;TRACE_LEVEL_SYSTEM_OUT=4",
                     "sa", // login
                     "" // password
             );
@@ -150,6 +153,7 @@ public class JdbcTutor extends Tutor {
         final String sql = "INSERT INTO STUDENTS (id,name,EMAIL) VALUES(?,?,?)";
 
         final PreparedStatement stmt = conn.prepareStatement(sql);
+        conn.setAutoCommit(false);
         try {
             for (Student student : strdents) {
                 stmt.setInt(1, student.id);
@@ -168,8 +172,13 @@ public class JdbcTutor extends Tutor {
                     System.out.println("Batch #" + i + " - Affected " + results[i] + " rows.");
                 }
             }
+            conn.commit();
+        }catch(SQLException e) {
+            e.printStackTrace();
+            conn.rollback();
 
         } finally {
+            conn.setAutoCommit(true);
             stmt.close();
         }
     }
